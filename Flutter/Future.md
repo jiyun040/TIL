@@ -32,7 +32,7 @@ void getStart(){
 }
 
 void accessData(){
-	print("start!")
+	print("get data!")
 }
 
 void fetchData(){
