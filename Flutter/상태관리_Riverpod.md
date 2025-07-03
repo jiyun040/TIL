@@ -1,70 +1,122 @@
-Provider 패키지를 기반으로 구축된 라이브러리
+> InheritedWidget과 비슷한 동작을 하는 새로운 매커니즘으로 재구현한 상태 관리 패키지
+> 
+*InheritedWidget: Tree의 Top에 접근해 바로 데이터를 가져올 수 있도록 하는 위젯
 
-Provider의 주요 단점을 해결하고 보다 유연하고 안전한 상태 관리를 제공
+- 공식사이트: 리액티브 캐싱, 데이터 바인딩 프레임 워크이다.
 
-반응형 패러다임을 제공하며, 개발 중 발생할 수 있는 오류를 런타임이 아닌 컴파일 타임에 잡아낼 수 있다. 
+**- 리액티브 캐싱 ( Reactive Caching )**
 
-**특징**
+- 데이터를 비동기적으로 계산할 때 캐싱해 해당 데이터가 필요한 모든 곳에서 쉽게 접근 할 수 있도록 하는 것
+- Riverpod 에서는 Provider를 이용해 상태를 지속적으로 캐시하고 노출함으로써 데이터를 쉽게 공유하고 동기화할 수 있다.
+  ⇒ 처음 데이터를 가져온 뒤에는 동일한 데이터를 다른 컴포넌트에서 다시 가져올 필요 없이 이미 캐시된 데이터를 활용해 중복 호출을 줄인다.
 
-- 다음과 같은 핵심 개념을 기반으로 한다.
-    - Providers: 데이터 소스를 선언한다.
-    - Consumers: Provider를 읽고 변경 사항에 따라 재구성한다.
-    - Notifiers: Provider를 업데이트 한다.
-    - Riverpod는 내부적으로 스트림을 사용해서 provider가 변경될 때 consumer를 업데이트 한다.
-- Riverpod의 일부 타입 안전성 문제를 개선했고, 상태 객체를 더 쉽게 테스트할 수 있다.
-- 유연성과 범용성이 높다.
+**- 데이터 바인딩 ( Data Binding )**
 
-**작동 흐름**
+- UI + 데이터 → 데이터의 변경에 따라 UI를 자동으로 변경한다.
+- Riverpod 이용시 상태를 나타내는 Provider 및 ref 객체의 watch 메서드를 통해 상태의 변경을 관찰해 상태가 변경되면 UI가 자동으로 반영할 수 있도록 한다. 
+  ⇒ MVVM 패턴 구현 가능하다.
 
-1. 데이터를 위한 Provider Repository를 선언한다.
-2. 앱을 Provider 컨테이너로 감싼다.
-3. 컴포넌트는 consumer를 사용해서 provider에 접근한다. 
-4. notifier를 통해 provider와 상호작용한다.
-5. consumer는 provider의 변경에 따라 UI를 재구성한다.
+*MVVM ( Model View, View, Model ) 패턴: 비즈니스 로직과 프레젠테이션 로직을 UI로 명확하게 분리하는 패턴
 
-**장점**
+Riverpod는 Provider 패키지의 상위 버전 패키지다. 버전업을 하지 않고 새로 배포한 이유는 Provider의 결함을 수정하기 위해선 매커니즘을 크게 수정할 수 있을뿐 이였기 떄문이다. 
 
-- Provider의 타입 안전성 문제를 개선했고, 더 안정적인 개발 환경을 제공한다.
-- 상태 관리 로직을 쉽게 테스트하고 유지보수 할 수 있다.
-- 거의 모든 종류의 상태 관리 시나리오에 적용할 수 있고, Provider를 사용하는 것보다 더 다양한 기능을 지원한다.
+**- Provider의 대표적인 결함**
 
-**단점**
+- 런타임에 ProviderNotFoundException이 호출되는 문제
+- Provider를 더 이상 사용하지 않을 때에는 수동으로 dispose를 해줘야 하는 문제
+- 다른 Provider를 의존하는 복잡한 Provider를 생성할 수 없는 문제
 
-- 새로운 개념과 패턴이 많아 처음 접한다면 러닝 커브가 높다고 느껴질 수 있다.
-- 기존의 Provider 사용자가 Riverpod의 새로운 패러다임에 적응하는 데 시간이 걸릴 수 있다.
+**- Riverpod의 장점**
 
-```Flutter
-// State Notifier
-class CounterNotifier extends StateNotifier<int> { //상태 관리 클래스
-  CounterNotifier() : super(0); //초기 상태를 0으로 설정
+- Provider의 장점
+    - 위젯 리빌드 시 상태 손실 걱정 없이 create, observe, dispose 할 수 있다.
+    - lazy loading을 지원해 사용자가 사용중이지 않은 Provider를 당장 로딩하지 않는다..
+    - 플러터의 devetool에서 Provider 객체 관찰이 가능하다.
+    - 단방향의 데이터 흐름으로 앱의 확장성을 높일 수 있다.
+- Riverpod의 장점
+    - Riverpod는 Compile-safe 하다.
+      ⇒ 사용에 문제가 있다면 컴파일 타임에 발견하므로 더이상 런타임에 ProviderNotFoundException이 발생하지 않는다.
+    - Flutter SDK에 의존하지 않는다.
+      ⇒ Provider에서는 동일한 타입의 Provider를 만들 수 없어서 동일한 타입을 정의하려면 커스텀 클래스를 정의해야만 했었다.
+    - 최소한의 보일러 플레이트 코드로 다른 Provider와 간단하게 결합할 수 있다.
+      ⇒ Provider에서는 여러 Provider를 결합할 경우 다른 형태인 ProxyProvider를 사용해야 한다.
+    - 테스트가 간편해진다.
+      ⇒ 테스트 내에서 Provider를 재정의 할 필요 없고 setUp / tearDown 단계가 불필요해져 특정 행위에 대한 테스트가 쉬워진다.
+    - 범위 지정에 대한 과도한 의존도를 중리고 사용되지 않는 Provider의 상태를 자동으로 dispose 시킬 수 있다.
 
-  void increment() => state++; //1증가
-  void decrement() => state--; //1감소
+- ProviderScope
+
+앱 전체를 `ProviderScope`로 감싸야 **Riverpod가 사용** 가능하다.
+
+- ref 객체
+
+Provider를 **읽기 위해** 필요하다.
+
+ref객체는 StatelessWidget에서는 얻을 수 없고 ConsumerWidget을 사용하거나 사용하고 싶은 위젯의 부분에서 Consumer 위젯으로 감싸면 ref 객체를 사용할 수 있게된다. 
+
+*ConsumerWidget: Provider 객체의 상태를 구독하고, 상태의 변경이 있을 때 마다 build를 호출해 화면을 다시 그린다. 
+
+- watch 메서드
+
+Provider의 값을 구독해 **가져올 때** 사용한다. 
+
+**사용예제**
+
+1. provider.dart
+
+```dart
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// 정수형 provider 선언
+final numberProvider = Provider<int>((ref) {
+	return 42;
+});
+```
+
+1. main.dart
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'provider.dart';
+
+void main() {
+	runApp(
+		// 전체를 ProviderScope로 감싸야 Riverpod 사용 가능
+		const ProviderScope(child: MyApp()),
+	);
 }
 
-// Provider
-final counterProvider = StateNotifierProvider<CounterNotifier, int>((ref) { //ref: Provider간의 의존성을 관리
-  return CounterNotifier(); //상태 제공하는 역할
-});
+class MyApp extends StatelessWidget {
+	const MyApp({super.key});
+	
+	@override
+	Widget build(BuildContext context) {
+		return const MaterialApp(
+			home: HomePage(),
+		);
+	}
+}
+```
 
-// Counter Widget using Riverpod
-class SimpleCounter extends ConsumerWidget { //사용자가 상태 보고 버튼을 눌러 상태 변경할 수 있는 UI
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(counterProvider); //counterProvider의 상태를 감시, 상태가 변경되면 UI를 새로 그림
-    return Column(
-      children: [
-        IconButton(
-          icon: Icon(Icons.remove),
-          onPressed: () => ref.read(counterProvider.notifier).decrement(), //counterProvider에 연결된 CounterNotifier 객체를 가져옴
-        ),
-        Text('Count: $count'),
-        IconButton(
-          icon: Icon(Icons.add),
-          onPressed: () => ref.read(counterProvider.notifier).increment(),
-        ),
-      ],
-    );
-  }
+1. HomePage에서 Provider 사용
+
+```dart
+class HomePage extends ConsumerWidget {
+	const HomePage({super.key});
+	
+	@override
+	Widget build(BuildContext context, WidgetRef ref) {
+		// ref를 이용해 provider의 값 읽기
+		final number = ref.watch(numberProvider);
+		
+		return Scaffold(
+			body: Center(
+				child: Text(
+					'Provider 값: $number'
+				),
+			),
+		);
+	}
 }
 ```
